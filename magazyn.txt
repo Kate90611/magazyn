@@ -1,1 +1,4 @@
+1000.0
+produkt1 10
+produkt2 5
 
