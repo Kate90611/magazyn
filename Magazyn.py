@@ -113,3 +113,81 @@ def main():
 
 if __name__ == "__main__":
     main()
+    if __name__ == "__main__":
+    main()
+
+def wczytaj_dane():
+    try:
+        with open('magazyn.txt', 'r') as f:
+            saldo = float(f.readline().strip())
+            stan_magazynu = {line.split()[0]: int(line.split()[1]) for line in f.readlines()}
+    except FileNotFoundError:
+        saldo = 0.0
+        stan_magazynu = {}
+    return saldo, stan_magazynu
+
+def zapisz_dane(saldo, stan_magazynu):
+    with open('magazyn.txt', 'w') as f:
+        f.write(f"{saldo}\n")
+        for kod, ilosc in stan_magazynu.items():
+            f.write(f"{kod} {ilosc}\n")
+
+from datetime import datetime
+
+def dodaj_do_histori(kod_produktu, ilosc, typ_operacji):
+    with open('historia.txt', 'a') as f:
+        data = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        f.write(f"{data} {typ_operacji} {kod_produktu} {ilosc}\n")
+
+def przyjmij_towar(kod_produktu, ilosc, saldo, stan_magazynu):
+    if saldo >= ilosc * 10:  # Zakładając, że cena jednostkowa to 10
+        saldo -= ilosc * 10
+        stan_magazynu[kod_produktu] = stan_magazynu.get(kod_produktu, 0) + ilosc
+        dodaj_do_histori(kod_produktu, ilosc, 'Przyjęcie')
+        zapisz_dane(saldo, stan_magazynu)
+        print(f"Przyjęto {ilosc} sztuk produktu {kod_produktu}.")
+    else:
+        print("Brak wystarczających środków na koncie.")
+
+def wydaj_towar(kod_produktu, ilosc, saldo, stan_magazynu):
+    if stan_magazynu.get(kod_produktu, 0) >= ilosc:
+        stan_magazynu[kod_produktu] -= ilosc
+        saldo += ilosc * 10  # Zakładając, że cena jednostkowa to 10
+        dodaj_do_histori(kod_produktu, ilosc, 'Wydanie')
+        zapisz_dane(saldo, stan_magazynu)
+        print(f"Wydano {ilosc} sztuk produktu {kod_produktu}.")
+    else:
+        print("Brak wystarczającej ilości w magazynie.")
+
+def menu():
+    saldo, stan_magazynu = wczytaj_dane()
+    while True:
+        print("\n1. Przyjęcie towaru")
+        print("2. Wydanie towaru")
+        print("3. Stan magazynu")
+        print("4. Historia operacji")
+        print("5. Zakończ")
+        wybor = input("Wybierz opcję: ")
+        if wybor == '1':
+            kod = input("Kod produktu: ")
+            ilosc = int(input("Ilość: "))
+            przyjmij_towar(kod, ilosc, saldo, stan_magazynu)
+        elif wybor == '2':
+            kod = input("Kod produktu: ")
+            ilosc = int(input("Ilość: "))
+            wydaj_towar(kod, ilosc, saldo, stan_magazynu)
+        elif wybor == '3':
+            print("Stan magazynu:")
+            for kod, ilosc in stan_magazynu.items():
+                print(f"{kod}: {ilosc}")
+        elif wybor == '4':
+            with open('historia.txt', 'r') as f:
+                print(f.read())
+        elif wybor == '5':
+            print("Zakończenie programu.")
+            break
+        else:
+            print("Nieprawidłowy wybór.")
+if __name__ == "__main__":
+    menu()
+
